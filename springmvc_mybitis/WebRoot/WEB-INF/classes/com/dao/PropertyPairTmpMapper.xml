@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dao.PropertyPairTmpMapper" >
+  <resultMap id="BaseResultMap" type="com.model.PropertyPairTmp" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="source_id" property="sourceId" jdbcType="INTEGER" />
+    <result column="property_id" property="propertyId" jdbcType="INTEGER" />
+    <result column="property_value_id" property="propertyValueId" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, source_id, property_id, property_value_id
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from property_pair_tmp
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from property_pair_tmp
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.model.PropertyPairTmp" >
+    insert into property_pair_tmp (id, source_id, property_id, 
+      property_value_id)
+    values (#{id,jdbcType=INTEGER}, #{sourceId,jdbcType=INTEGER}, #{propertyId,jdbcType=INTEGER}, 
+      #{propertyValueId,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.model.PropertyPairTmp" >
+    insert into property_pair_tmp
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="sourceId != null" >
+        source_id,
+      </if>
+      <if test="propertyId != null" >
+        property_id,
+      </if>
+      <if test="propertyValueId != null" >
+        property_value_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="sourceId != null" >
+        #{sourceId,jdbcType=INTEGER},
+      </if>
+      <if test="propertyId != null" >
+        #{propertyId,jdbcType=INTEGER},
+      </if>
+      <if test="propertyValueId != null" >
+        #{propertyValueId,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.model.PropertyPairTmp" >
+    update property_pair_tmp
+    <set >
+      <if test="sourceId != null" >
+        source_id = #{sourceId,jdbcType=INTEGER},
+      </if>
+      <if test="propertyId != null" >
+        property_id = #{propertyId,jdbcType=INTEGER},
+      </if>
+      <if test="propertyValueId != null" >
+        property_value_id = #{propertyValueId,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.model.PropertyPairTmp" >
+    update property_pair_tmp
+    set source_id = #{sourceId,jdbcType=INTEGER},
+      property_id = #{propertyId,jdbcType=INTEGER},
+      property_value_id = #{propertyValueId,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

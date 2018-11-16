@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd" >  
+<generatorConfiguration>  
+    <!-- 指定数据连接驱动jar地址 -->  
+    <classPathEntry location="mysql-connector-java-5.1.38-bin.jar" />  
+      
+    <!-- 一个数据库一个context -->  
+    <context id="infoGuardian">  
+        <!-- 注释 -->  
+        <commentGenerator >  
+            <property name="suppressAllComments" value="true"/><!-- 是否取消注释 -->  
+            <property name="suppressDate" value="true" /> <!-- 是否生成注释代时间戳-->  
+        </commentGenerator>  
+          
+        <!-- jdbc连接 -->  
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver"  
+            connectionURL="jdbc:mysql://localhost:3306/demo_sunft?useUnicode=true&amp;characterEncoding=utf-8" 
+            userId="root"  
+            password="lzq" />  
+          
+        <!-- 类型转换 -->  
+        <javaTypeResolver>  
+            <!-- 是否使用bigDecimal， false可自动转化以下类型（Long, Integer, Short, etc.） -->  
+            <property name="forceBigDecimals" value="true"/>  
+        </javaTypeResolver>  
+          
+        <!-- 生成实体类地址 -->    
+        <javaModelGenerator targetPackage="com.model"  
+            targetProject="/Users/lzq/Documents/workspace/springmvc_mybitis/src" >  
+            <!-- 是否在当前路径下新加一层schema,eg：fase路径com.oop.eksp.user.model， true:com.oop.eksp.user.model.[schemaName] -->  
+            <property name="enableSubPackages" value="false"/>  
+            <!-- 是否针对string类型的字段在set的时候进行trim调用 -->  
+            <property name="trimStrings" value="true"/>  
+        </javaModelGenerator>  
+          
+        <!-- 生成mapxml文件 -->  
+        <sqlMapGenerator targetPackage="com.dao"  
+            targetProject="/Users/lzq/Documents/workspace/springmvc_mybitis/src" >  
+            <!-- 是否在当前路径下新加一层schema,eg：fase路径com.oop.eksp.user.model， true:com.oop.eksp.user.model.[schemaName] -->  
+            <property name="enableSubPackages" value="false" />  
+        </sqlMapGenerator>  
+          
+        <!-- 生成mapxml对应client，也就是接口dao -->      
+        <javaClientGenerator targetPackage="com.dao"  
+            targetProject="/Users/lzq/Documents/workspace/springmvc_mybitis/src" type="XMLMAPPER" >  
+            <!-- 是否在当前路径下新加一层schema,eg：fase路径com.oop.eksp.user.model， true:com.oop.eksp.user.model.[schemaName] -->  
+            <property name="enableSubPackages" value="false" />  
+        </javaClientGenerator>  
+          
+        <!-- 配置表信息 -->      
+        <table schema="${jdbc_user}" tableName="category"  
+            domainObjectName="Category" enableCountByExample="false"  
+            enableDeleteByExample="false" enableSelectByExample="false"  
+            enableUpdateByExample="false">  
+            
+            <!-- schema即为数据库名 tableName为对应的数据库表 domainObjectName是要生成的实体类     enable*ByExample 是否生成 example类   -->  
+              
+            <!-- 忽略列，不生成bean 字段 -->  
+			<!--  <ignoreColumn column="FRED" />   -->
+            <!-- 指定列的java数据类型 -->  
+			<columnOverride column="level" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="is_leaf" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="status" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			
+        </table>  
+        
+        <table schema="${jdbc_user}" tableName="category_property_name"  
+            domainObjectName="CategoryPropertyName" enableCountByExample="false"  
+            enableDeleteByExample="false" enableSelectByExample="false"  
+            enableUpdateByExample="false">  
+			<columnOverride column="is_required" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="input_type" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="property_type" javaType="java.lang.Integer" jdbcType="TINYINT" />
+        </table>  
+        
+         <table schema="${jdbc_user}" tableName="category_property_value"  
+            domainObjectName="CategoryPropertyValue" enableCountByExample="false"  
+            enableDeleteByExample="false" enableSelectByExample="false"  
+            enableUpdateByExample="false">  
+        </table>  
+        
+         <table schema="${jdbc_user}" tableName="property_name"  
+            domainObjectName="PropertyName" enableCountByExample="false"  
+            enableDeleteByExample="false" enableSelectByExample="false"  
+            enableUpdateByExample="false">  
+            <columnOverride column="is_key_property" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="is_sell_property" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="is_goods_property" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="input_type" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="modify_type" javaType="java.lang.Integer" jdbcType="TINYINT" />
+        </table>  
+        
+        <table schema="${jdbc_user}" tableName="property_name"  
+            domainObjectName="PropertyName" enableCountByExample="false"  
+            enableDeleteByExample="false" enableSelectByExample="false"  
+            enableUpdateByExample="false">  
+            <columnOverride column="is_key_property" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="is_sell_property" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="is_goods_property" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="input_type" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="modify_type" javaType="java.lang.Integer" jdbcType="TINYINT" />
+        </table>  
+        
+        
+        <table schema="${jdbc_user}" tableName="property_value"  
+            domainObjectName="PropertyValue" enableCountByExample="false"  
+            enableDeleteByExample="false" enableSelectByExample="false"  
+            enableUpdateByExample="false">  
+        </table> 
+        
+        <table schema="${jdbc_user}" tableName="property_pair"  
+            domainObjectName="PropertyPair" enableCountByExample="false"  
+            enableDeleteByExample="false" enableSelectByExample="false"  
+            enableUpdateByExample="false">  
+        </table> 
+        
+        <table schema="${jdbc_user}" tableName="category_tmp"  
+            domainObjectName="CategoryTmp" enableCountByExample="false"  
+            enableDeleteByExample="false" enableSelectByExample="false"  
+            enableUpdateByExample="false">  
+        </table> 
+        
+        <table schema="${jdbc_user}" tableName="property_tmp"  
+            domainObjectName="PropertyTmp" enableCountByExample="false"  
+            enableDeleteByExample="false" enableSelectByExample="false"  
+            enableUpdateByExample="false">  
+        </table> 
+        
+        <table schema="${jdbc_user}" tableName="property_pair_tmp"  
+            domainObjectName="PropertyPairTmp" enableCountByExample="false"  
+            enableDeleteByExample="false" enableSelectByExample="false"  
+            enableUpdateByExample="false">  
+        </table> 
+        
+        
+  
+    </context>  
+</generatorConfiguration>  
