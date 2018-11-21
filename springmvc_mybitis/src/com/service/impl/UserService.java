@@ -1,5 +1,6 @@
 package com.service.impl;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,9 @@ import com.enums.PropertyInputTypeEnum;
 import com.enums.PropertyTypeEnum;
 import com.model.*;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,9 +52,13 @@ public class UserService implements IUserService{
     private PropertyPairMapper IProperPairDao;
     @Resource
     private CategoryPropertyValueMapper ICategoryPropertyValueDao;
+    @Resource
+	private CategoryPropertySkuImageMapper ICategoryPropertySkuImageDao;
 
     public static Integer ORDER_INCREMENT = 10;
 
+
+	private Logger log = LoggerFactory.getLogger(UserService.class);
 
 
 	@Override
@@ -61,7 +69,7 @@ public class UserService implements IUserService{
 		account.setAccount(params.get("account").toString());
 		account.setPlatNo(params.get("plat_no").toString());
 		AccountEntity ae = IAccount.selectByPrimaryKey(account);
-		
+
 //		Map<String,Object> map = redisCache.getCacheMap("cityMap");
 		return ParamUtil.transBean2Map(ae);
 	}
@@ -255,6 +263,15 @@ public class UserService implements IUserService{
                     categoryPropertyNameAdd.setSortOrder(order);
                     //类目属性入库
                     ICategoryPropertyNameDao.insertSelective(categoryPropertyNameAdd);
+
+					if(PropertyTypeEnum.SELL_PROPERTY.getVal()==propertyTmp.getPropertyType()){
+						//销售属性入库
+						CategoryPropertySkuImage categoryPropertySkuImage = new CategoryPropertySkuImage();
+						categoryPropertySkuImage.setPropertyNameId(propertyTmp.getPropertyId());
+						categoryPropertySkuImage.setIsRequired(propertyTmp.getSkuType());
+						categoryPropertySkuImage.setCategoryId(propertyTmp.getCategoryId());
+						ICategoryPropertySkuImageDao.insertSelective(categoryPropertySkuImage);
+					}
                     propertyTmp.setPropertyNameId(categoryPropertyNameAdd.getId());
                 }else{
                     propertyTmp.setPropertyNameId(categoryPropertyName.getId());
@@ -264,22 +281,29 @@ public class UserService implements IUserService{
                     //属性信息
                     String[] strs = propertyValue.split("\\|");
                     for(String str : strs){
-                        PropertyValue propertyValueQuery = IPropertyValueDao.selectByName(str);
+                        PropertyValue propertyValueQuery = IPropertyValueDao.selectByName(str.toUpperCase());
                         if(null==propertyValueQuery){
                             PropertyValue propertyValueModel = new PropertyValue();
                             propertyValueModel.setName(str);
+                            propertyValueModel.setNameUpperMd5(str.toUpperCase());//存放大写属性值
                             //属性值入库
-                            IPropertyValueDao.insertSelective(propertyValueModel);
-                            int maxOrder = IProperPairDao.selectMaxOrderByName(propertyTmp.getPropertyId());
-                            int order = getOrderNext(maxOrder);
-                            PropertyPair propertyPair = new PropertyPair();
-                            propertyPair.setPropertyValueId(propertyValueModel.getId());
-                            propertyPair.setPropertyNameId(propertyTmp.getPropertyId());
-                            propertyPair.setOrder(order);
-                            //属性对入库
-                            IProperPairDao.insertSelective(propertyPair);
-                            propertyTmp.setPropertyPairId(propertyPair.getId());
-                        }else{
+							try {
+								IPropertyValueDao.insertSelective(propertyValueModel);
+								int maxOrder = IProperPairDao.selectMaxOrderByName(propertyTmp.getPropertyId());
+								int order = getOrderNext(maxOrder);
+								PropertyPair propertyPair = new PropertyPair();
+								propertyPair.setPropertyValueId(propertyValueModel.getId());
+								propertyPair.setPropertyNameId(propertyTmp.getPropertyId());
+								propertyPair.setOrder(order);
+								//属性对入库
+								IProperPairDao.insertSelective(propertyPair);
+								propertyTmp.setPropertyPairId(propertyPair.getId());
+							} catch (DuplicateKeyException e) {
+								log.error("DuplicateKeyException e:{},message:{}",e,e.getMessage());
+								propertyValueQuery = IPropertyValueDao.selectByName(str.toUpperCase());
+							}
+                        }
+                        if(null!=propertyValueQuery){
                             //获取属性值id,
                             PropertyPair propertyPair = IProperPairDao.selectByCondition(propertyTmp.getPropertyId(),propertyValueQuery.getId());
                             if(null==propertyPair){
@@ -594,24 +618,51 @@ public class UserService implements IUserService{
     }*/
 
     public static void main(String[] args) {
-	    Integer i = 300;
-	    i+=200;
-        System.out.println(i);
-	    double dd = 300.123458800;
-        System.out.println(dd+"");
-        System.out.println(String.valueOf(dd));
+		Integer i = 300;
+		i += 200;
+		System.out.println(i);
+		double dd = 300.123458800;
+		System.out.println(dd + "");
+		System.out.println(String.valueOf(dd));
+		System.out.println(String.format("%s",dd));
 
-        System.out.println(300==i);
-        System.out.println(Objects.equals(300,i));
-        System.out.println(new DecimalFormat("#.##%").format(dd));//314.16%
+		//
+		BigDecimal bd = new BigDecimal("11300.123458800");
+		DecimalFormat df = new DecimalFormat("###,###.0000");//加入千分位，四位小数，不够补零，源位数较多时四舍五入
+		String formatValue = df.format(bd);
 
-        String str = "其他|S|M|L|XS|XL|2XL|3XL|均码|4XL";
-        String[] strs = str.split("\\|");
-        for(String s : strs){
-            System.out.println(s);
-        }
 
-    }
+
+		System.out.println(df.format(bd));
+
+//		System.out.println("300.123458800".t);
+
+		System.out.println(300 == i);
+		System.out.println(Objects.equals(300, i));
+
+		dd = 0.1267;
+		System.out.println(new DecimalFormat("#.##%").format(dd));//转化百分比，保留两位小数，四舍五入
+
+		String str = "其他|S|M|L|XS|XL|2XL|3XL|均码|4XL";
+		String[] strs = str.split("\\|");
+		for (String s : strs) {
+			System.out.println(s);
+		}
+
+		List<String> strList = new ArrayList<>();
+		strList.forEach(System.out::println);
+
+
+		List<CategoryTmp> categoryList = new ArrayList<>();
+
+		//key不能重复
+		Map<Integer, Integer> sourceCategoryMap = categoryList.stream().collect(Collectors.toMap(CategoryTmp::getSourceId, CategoryTmp::getLeafCategoryId));
+
+		sourceCategoryMap.forEach((k, v) -> {
+			System.out.printf("key[%s],value[%s] \n", k, v);
+		});
+	}
+
 
 
 }

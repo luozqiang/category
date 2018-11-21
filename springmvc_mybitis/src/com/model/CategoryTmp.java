@@ -27,6 +27,17 @@ public class CategoryTmp {
 
     private String secondCategoryFullId;
 
+    private Integer skuType;
+
+    public Integer getSkuType() {
+        return skuType;
+    }
+
+    public void setSkuType(Integer skuType) {
+        this.skuType = skuType;
+    }
+
+
     public String getSecondCategoryFullId() {
         return secondCategoryFullId;
     }

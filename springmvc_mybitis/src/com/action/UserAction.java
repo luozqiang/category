@@ -1,18 +1,13 @@
 package com.action;
 
 import java.io.PrintWriter;
-import java.util.Map;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
 import com.alibaba.fastjson.JSONObject;
 import com.service.interfaces.IUserService;
-import com.util.ParamUtil;
 
 @Controller
 public class UserAction {
@@ -34,8 +29,6 @@ public class UserAction {
 		} catch (Exception e) {
 			code = "10000";
 			msg = e.getMessage();
-			System.out.println(e+","+msg);
-			e.printStackTrace();
 		}
 		JSONObject json = new JSONObject();
 		json.put("recode", code);

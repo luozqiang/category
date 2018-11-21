@@ -4,12 +4,12 @@
   <resultMap id="BaseResultMap" type="com.model.PropertyValue" >
     <id column="id" property="id" jdbcType="INTEGER" />
     <result column="name" property="name" jdbcType="VARCHAR" />
-    <result column="name_upper_md5" property="nameUpperMd5" jdbcType="VARCHAR" />
+    <result column="name_upper" property="nameUpperMd5" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
   <sql id="Base_Column_List" >
-    id, name, name_upper_md5, create_time, update_time
+    id, name, name_upper, create_time, update_time
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
     select 
@@ -21,14 +21,14 @@
     select
     <include refid="Base_Column_List" />
     from property_value
-    where name = #{name,jdbcType=VARCHAR}
+    where name_upper = #{name,jdbcType=VARCHAR}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
     delete from property_value
     where id = #{id,jdbcType=INTEGER}
   </delete>
   <insert id="insert" parameterType="com.model.PropertyValue" >
-    insert into property_value (id, name, name_upper_md5, 
+    insert into property_value (id, name, name_upper, 
       create_time, update_time)
     values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{nameUpperMd5,jdbcType=VARCHAR}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
@@ -43,7 +43,7 @@
         name,
       </if>
       <if test="nameUpperMd5 != null" >
-        name_upper_md5,
+        name_upper,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -77,7 +77,7 @@
         name = #{name,jdbcType=VARCHAR},
       </if>
       <if test="nameUpperMd5 != null" >
-        name_upper_md5 = #{nameUpperMd5,jdbcType=VARCHAR},
+        name_upper = #{nameUpperMd5,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -91,7 +91,7 @@
   <update id="updateByPrimaryKey" parameterType="com.model.PropertyValue" >
     update property_value
     set name = #{name,jdbcType=VARCHAR},
-      name_upper_md5 = #{nameUpperMd5,jdbcType=VARCHAR},
+      name_upper = #{nameUpperMd5,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}

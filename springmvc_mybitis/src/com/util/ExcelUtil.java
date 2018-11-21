@@ -52,7 +52,7 @@ public class ExcelUtil {
 			if (row == null)
 				continue;
 			int startCellNum = row.getFirstCellNum();
-			int endCellNum = 8;//row.getLastCellNum();
+			int endCellNum = 9;//row.getLastCellNum();
 			for (int cellNum = startCellNum; cellNum <= endCellNum; cellNum++) {
 				Cell cell = row.getCell(cellNum);
 				if (cell == null)
@@ -82,10 +82,11 @@ public class ExcelUtil {
 		        case XSSFCell.CELL_TYPE_FORMULA:  
 		            cellValue = cell.getCellFormula(); 
 				default:
-					cellValue = "";
+//					cellValue = "";
+					cellValue = cell.getStringCellValue();
 					break;
 				}
-				al.add(cellValue);
+				al.add(cellValue.trim());
 			}
 			aal.add(al);
 		}
@@ -97,7 +98,7 @@ public class ExcelUtil {
      */ 
     public static Map<String,Object> getExcelInfo(String excelUrl){
     	if(StringUtils.isBlank(excelUrl)){
-    		excelUrl = "/Users/lzq/Documents/123.xlsx";//默认excel地址
+    		excelUrl = "/Users/lzq/Documents/456.xlsx";//默认excel地址
     	}
     	try {
 			int i = 0;
@@ -130,6 +131,7 @@ public class ExcelUtil {
 						return null;
 					}
 				}
+
 				String category2 = array.get(1);
 				String category3 = array.get(2);
 				if(StringUtils.isNotBlank(category3) && StringUtils.isBlank(category2)){
@@ -149,9 +151,25 @@ public class ExcelUtil {
 				categoryTmp.setFourthCategory(category4);
 				categoryTmp.setProperty(property);
 				categoryTmp.setPropertyType(PropertyTypeEnum.getEnumByName(propertyType).getVal());
+
+				//校验sku主图属性必须为销售属性
+				String skuType = array.get(9);
+				if("0".equals(skuType)){
+				}else if("1".equals(skuType)){
+					if(PropertyTypeEnum.SELL_PROPERTY.getVal()!=categoryTmp.getPropertyType()){
+						log.error("第{}行主图属性非销售属性！！！",i);
+						return null;
+					}
+				}else{
+					skuType = "0";
+//					log.error("第{}行主图属性[{}]非法，必须1或0！！！",i,skuType);
+//					return null;
+				}
+				categoryTmp.setSkuType(Integer.parseInt(skuType));
 				categoryList.add(categoryTmp);
 
 				PropertyTmp propertyTmp = new PropertyTmp();
+				propertyTmp.setSkuType(categoryTmp.getSkuType());
 				propertyTmp.setSourceId(i);
 				propertyTmp.setProperty(property);
 				propertyTmp.setPropertyValue(propertyValue);
@@ -160,7 +178,17 @@ public class ExcelUtil {
 				propertyTmp.setPropertyType(propertyTypeEnum.getVal());
 				propertyList.add(propertyTmp);
 			}
-	        //校验销售属性
+			//主图
+			Map<String,Long> groupSkuResult = categoryList.stream().filter(s -> 1==s.getSkuType()).collect(Collectors.groupingBy(CategoryTmp::getKeyId,Collectors.counting()));
+			Map<String,Long> skuProblemMap = Maps.filterValues(groupSkuResult, r->r>1);
+			if(null!=skuProblemMap && !skuProblemMap.isEmpty()){
+				skuProblemMap.forEach((k,v)->{
+					log.error("类目【{}】,sku主图属性数量{}！",k,v);
+				});
+				return null;
+			}
+
+			//校验销售属性
 	        Map<String,Long> groupResult = categoryList.stream().filter(s -> 2==s.getPropertyType()).collect(Collectors.groupingBy(CategoryTmp::getKeyId,Collectors.counting()));
 	        Map<String,Long> propertyProblemMap = Maps.filterValues(groupResult, r->r>2);
 	        if(null!=propertyProblemMap && !propertyProblemMap.isEmpty()){

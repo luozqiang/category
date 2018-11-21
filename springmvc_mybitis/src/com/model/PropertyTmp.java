@@ -21,6 +21,16 @@ public class PropertyTmp {
 
     private Integer categoryId;
 
+    private Integer skuType;
+
+    public Integer getSkuType() {
+        return skuType;
+    }
+
+    public void setSkuType(Integer skuType) {
+        this.skuType = skuType;
+    }
+
     public Integer getPropertyPairId() {
         return propertyPairId;
     }
