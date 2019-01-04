@@ -6,11 +6,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
+
+import com.alibaba.fastjson.JSONObject;
 import com.dao.*;
 import com.enums.PropertyIsRequiredEnum;
 import com.enums.PropertyModTypeEnum;
 import com.enums.PropertyTypeEnum;
+import com.google.common.collect.Maps;
 import com.model.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,16 +70,21 @@ public class UserService implements IUserService{
 			//一级类目处理
 			Map<String,Long> firstCategoryMap = categoryList.stream().collect(Collectors.groupingBy(CategoryTmp::getFirstCategory,Collectors.counting()));
 			firstCategoryMap.forEach((k,v)->{
-				Category category = new Category();
-				category.setIsLeaf(0);
-				category.setLevel(1);
-				category.setName(k);
-				category.setParentId(0);
-				category.setSortOrder(0);
-				category.setPathName(k);
-				category.setPath(null);
-				category.setStatus(1);
-				ICategoryDao.insertSelective(category);
+				Category ca = new Category();
+				ca.setName(k);
+				Category info = ICategoryDao.selectCategoryInfo(ca);
+				if(null==info){
+					Category category = new Category();
+					category.setIsLeaf(0);
+					category.setLevel(1);
+					category.setName(k);
+					category.setParentId(0);
+					category.setSortOrder(0);
+					category.setPathName(k);
+					category.setPath(null);
+					category.setStatus(1);
+					ICategoryDao.insertSelective(category);
+				}
 			});
 			//排序从1开始
 			int sortCount = 1;
@@ -85,7 +94,9 @@ public class UserService implements IUserService{
 				ca.setName(categoryTmp.getFirstCategory());
 				Category info = ICategoryDao.selectCategoryInfo(ca);
 				if(info.getSortOrder()==0){
-					info.setSortOrder(sortCount);
+					Integer fOrder = ICategoryDao.selectMaxOrderByLevel(1);
+					info.setSortOrder(getOrderNext(fOrder));
+//					info.setSortOrder(sortCount);
 					info.setPath("/"+info.getId()+"/");
 					//更新一级类目信息
 					ICategoryDao.updateByPrimaryKeySelective(info);
@@ -103,7 +114,9 @@ public class UserService implements IUserService{
 					category.setLevel(2);
 					category.setName(secName);
 					category.setParentId(info.getId());
-					category.setSortOrder(sortCount2);
+					Integer sOrder = ICategoryDao.selectMaxOrderByLevel(2);
+					category.setSortOrder(getOrderNext(sOrder));
+//					category.setSortOrder(sortCount2);
 					category.setPathName(info.getPathName()+","+secName);
 					category.setPath("/"+info.getId()+"/");
 					category.setStatus(1);
@@ -143,7 +156,10 @@ public class UserService implements IUserService{
 					category.setLevel(3);
 					category.setName(name);
 					category.setParentId(parentId);
-					category.setSortOrder(sortCount3);
+					Integer tOrder = ICategoryDao.selectMaxOrderByLevel(3);
+					category.setSortOrder(getOrderNext(tOrder));
+
+//					category.setSortOrder(sortCount3);
 					category.setPathName(parentPath+","+name);
 					category.setPath(categoryTmp.getSecondCategoryFullId());
 					category.setStatus(1);
@@ -183,7 +199,10 @@ public class UserService implements IUserService{
 					category.setLevel(4);
 					category.setName(name);
 					category.setParentId(parentId);
-					category.setSortOrder(sortCount4);
+					Integer fOrder = ICategoryDao.selectMaxOrderByLevel(4);
+					category.setSortOrder(getOrderNext(fOrder));
+
+//					category.setSortOrder(sortCount4);
 					category.setPathName(parentPath+","+name);
 					category.setPath(categoryTmp.getThirdCategoryFullId());
 					category.setStatus(1);
@@ -197,18 +216,33 @@ public class UserService implements IUserService{
 			}
 			//path路径更新
 			ICategoryDao.updateCategoryRemoveOne();
+
+
+			List<CategoryTmp> categoryListProblem = categoryList.stream().filter(s -> null==s.getLeafCategoryId()).collect(Collectors.toList());
+			for(CategoryTmp ct : categoryListProblem){
+				log.error("存储后异常类目【{}】！",JSONObject.toJSONString(ct));
+			}
+
+
 			//叶子类目信息
 			Map<Integer,Integer> sourceCategoryMap = categoryList.stream().collect(Collectors.toMap(CategoryTmp::getSourceId,CategoryTmp::getLeafCategoryId));
 			//属性相关信息
 			List<PropertyTmp> propertyList = (List<PropertyTmp>)recordMap.get(ExcelUtil.PROPERTY_KEY);
+			if(CollectionUtils.isEmpty(propertyList)) {
+				log.info("所有属性信息为空");
+				return;
+			}
 			//属性项记录
 			Map<String,Long> propertyMap = propertyList.stream().collect(Collectors.groupingBy(PropertyTmp::getProperty,Collectors.counting()));
 			propertyMap.forEach((k,v)->{
-				PropertyName propertyName = new PropertyName();
-				propertyName.setModifyType(0);
-				propertyName.setName(k);
-				//属性入库
-				IPropertyNameDao.insertSelective(propertyName);
+				PropertyName propertyNameInfo = IPropertyNameDao.selectPropertyNameByName(k);
+				if(null==propertyNameInfo){
+					PropertyName propertyName = new PropertyName();
+					propertyName.setModifyType(0);
+					propertyName.setName(k);
+					//属性入库
+					IPropertyNameDao.insertSelective(propertyName);
+				}
 			});
 			Map<String,Integer> propertyValueMap = new HashMap<>();
 			for(PropertyTmp propertyTmp : propertyList){
@@ -272,7 +306,15 @@ public class UserService implements IUserService{
 					//属性信息,中文或英文分割
 					String[] strs = propertyValue.split("\\||丨");
 					for(String str : strs){
+						if(StringUtils.isBlank(str)) continue;
 						str = str.trim();
+						if(!propertyValueMap.containsKey(str.toUpperCase())){
+							//查看数据库是否有记录
+							PropertyValue propertyValue1 = IPropertyValueDao.selectByName(str.toUpperCase());
+							if(null!=propertyValue1){
+								propertyValueMap.put(str.toUpperCase(),propertyValue1.getId());//存放属性值信息
+							}
+						}
 						if(!propertyValueMap.containsKey(str.toUpperCase())){
 							//新增记录
 							PropertyValue propertyValueModel = new PropertyValue();

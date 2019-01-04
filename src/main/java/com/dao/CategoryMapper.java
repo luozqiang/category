@@ -19,5 +19,7 @@ public interface CategoryMapper {
     Category selectCategoryInfo(Category record);
     
     int updateCategoryRemoveOne();
+
+    int selectMaxOrderByLevel(Integer level);
     
 }

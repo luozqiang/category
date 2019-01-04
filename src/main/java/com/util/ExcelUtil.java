@@ -105,7 +105,7 @@ public class ExcelUtil {
 	 */
 	public static Map<String,Object> getExcelInfo(String excelUrl){
 		if(StringUtils.isBlank(excelUrl)){
-			excelUrl = "/Users/lzq/Documents/8802.xlsx";//默认excel地址
+			excelUrl = "/Users/lzq/Documents/1002.xlsx";//默认excel地址
 		}
 		try {
 			int i = 0;
@@ -118,54 +118,39 @@ public class ExcelUtil {
 				String inputType = array.get(6);
 				String requiredType = array.get(7);
 				String propertyType = array.get(8);
-				if(StringUtils.isBlank(category1) || StringUtils.isBlank(property)  || StringUtils.isBlank(inputType)
-						|| StringUtils.isBlank(requiredType) || StringUtils.isBlank(propertyType)) {
+				String propertyValue = array.get(5);
+				String category2 = array.get(1);
+				String category3 = array.get(2);
+				String category4 = array.get(3);
+				String skuType = array.get(9);
+
+				//添加标识是否含有属性信息
+				boolean propertyFlag = true;
+				if(StringUtils.isBlank(array.get(4))&&StringUtils.isBlank(array.get(5))&&StringUtils.isBlank(array.get(6))
+						&&StringUtils.isBlank(array.get(7))&&StringUtils.isBlank(array.get(8))&&StringUtils.isBlank(array.get(9))){
+					propertyFlag = false;
+				}
+
+				if(StringUtils.isBlank(category1)) {
 					log.error("第{}行必填信息为空",i);
 					return null;
 				}
-				String propertyValue = array.get(5);
-				PropertyInputTypeEnum propertyInputTypeEnum = PropertyInputTypeEnum.getEnumByName(inputType);
-				PropertyIsRequiredEnum propertyIsRequiredEnum = PropertyIsRequiredEnum.getEnumByName(requiredType);
-				PropertyTypeEnum propertyTypeEnum = PropertyTypeEnum.getEnumByName(propertyType);
-				if(null==propertyInputTypeEnum || null==propertyIsRequiredEnum
-						|| null==propertyTypeEnum){
-					log.error("第{}行输入类型或是否必填或属性类型信息不满足枚举限制",i);
-					return null;
-				}
-				if(PropertyInputTypeEnum.requiredValueFlag(propertyInputTypeEnum)){
-					if(StringUtils.isBlank(propertyValue)){
-						log.error("第{}行属性值不可为空！！！",i);
-						return null;
-					}
-				}
-				if(propertyInputTypeEnum.getDesc().equals(PropertyInputTypeEnum.DATE_PICKER.getDesc()) || propertyInputTypeEnum.getDesc().equals(PropertyInputTypeEnum.TIME_PICKER.getDesc())){
-					if(!StringUtils.isBlank(propertyValue)){
-						log.error("第{}行时间或日期选择器属性值必须为空！！！",i);
-						return null;
-					}
-				}
-				String category2 = array.get(1);
-				String category3 = array.get(2);
+
 				if(StringUtils.isNotBlank(category3) && StringUtils.isBlank(category2)){
 					log.error("第{}行类目信息异常！！！",i);
 					return null;
 				}
-				String category4 = array.get(3);
+
 				if(StringUtils.isNotBlank(category4) && (StringUtils.isBlank(category3) || StringUtils.isBlank(category2))){
 					log.error("第{}行类目信息异常！！！",i);
 					return null;
 				}
 				CategoryTmp categoryTmp = new CategoryTmp();
-				categoryTmp.setSourceId(i);
-				categoryTmp.setFirstCategory(category1);
-				categoryTmp.setSecondCategory(category2);
-				categoryTmp.setThirdCategory(category3);
-				categoryTmp.setFourthCategory(category4);
-				categoryTmp.setProperty(property);
-				categoryTmp.setPropertyType(PropertyTypeEnum.getEnumByName(propertyType).getVal());
-
+				if(propertyFlag){
+					categoryTmp.setProperty(property);
+					categoryTmp.setPropertyType(PropertyTypeEnum.getEnumByName(propertyType).getVal());
+				}
 				//校验sku主图属性必须为销售属性
-				String skuType = array.get(9);
 				if("0".equals(skuType)){
 				}else if("1".equals(skuType)){
 					if(PropertyTypeEnum.SELL_PROPERTY.getVal()!=categoryTmp.getPropertyType()){
@@ -177,31 +162,66 @@ public class ExcelUtil {
 //					log.error("第{}行主图属性[{}]非法，必须1或0！！！",i,skuType);
 //					return null;
 				}
+
 				categoryTmp.setSkuType(Integer.parseInt(skuType));
+				categoryTmp.setSourceId(i);
+				categoryTmp.setFirstCategory(category1);
+				categoryTmp.setSecondCategory(category2);
+				categoryTmp.setThirdCategory(category3);
+				categoryTmp.setFourthCategory(category4);
+
 				categoryList.add(categoryTmp);
 
-				PropertyTmp propertyTmp = new PropertyTmp();
-				propertyTmp.setSkuType(categoryTmp.getSkuType());
-				propertyTmp.setSourceId(i);
-				propertyTmp.setProperty(property);
-				propertyTmp.setPropertyValue(propertyValue);
-				propertyTmp.setInputType(propertyInputTypeEnum.getVal());
-				propertyTmp.setIsRequire(propertyIsRequiredEnum.getVal());
-				propertyTmp.setPropertyType(propertyTypeEnum.getVal());
+				if(propertyFlag){
+					if(StringUtils.isBlank(property)  || StringUtils.isBlank(inputType)
+							|| StringUtils.isBlank(requiredType) || StringUtils.isBlank(propertyType)) {
+						log.error("第{}行必填信息为空",i);
+						return null;
+					}
+					PropertyInputTypeEnum propertyInputTypeEnum = PropertyInputTypeEnum.getEnumByName(inputType);
+					PropertyIsRequiredEnum propertyIsRequiredEnum = PropertyIsRequiredEnum.getEnumByName(requiredType);
+					PropertyTypeEnum propertyTypeEnum = PropertyTypeEnum.getEnumByName(propertyType);
+					if(null==propertyInputTypeEnum || null==propertyIsRequiredEnum
+							|| null==propertyTypeEnum){
+						log.error("第{}行输入类型或是否必填或属性类型信息不满足枚举限制",i);
+						return null;
+					}
+					if(PropertyInputTypeEnum.requiredValueFlag(propertyInputTypeEnum)){
+						if(StringUtils.isBlank(propertyValue)){
+							log.error("第{}行属性值不可为空！！！",i);
+							return null;
+						}
+					}
+					if(propertyInputTypeEnum.getDesc().equals(PropertyInputTypeEnum.DATE_PICKER.getDesc()) || propertyInputTypeEnum.getDesc().equals(PropertyInputTypeEnum.TIME_PICKER.getDesc())){
+						if(!StringUtils.isBlank(propertyValue)){
+							log.error("第{}行时间或日期选择器属性值必须为空！！！",i);
+							return null;
+						}
+					}
 
-				//校验销售属性必填
-				if(Objects.equals(PropertyTypeEnum.SELL_PROPERTY.getVal(),propertyTmp.getPropertyType())){
-					if(Objects.equals(PropertyIsRequiredEnum.REQUIRED_NO.getVal(),propertyTmp.getIsRequire())){
-						log.error("第{}行销售属性非必填！！！",i);
-						return null;
+					PropertyTmp propertyTmp = new PropertyTmp();
+					propertyTmp.setSkuType(categoryTmp.getSkuType());
+					propertyTmp.setSourceId(i);
+					propertyTmp.setProperty(property);
+					propertyTmp.setPropertyValue(propertyValue);
+					propertyTmp.setInputType(propertyInputTypeEnum.getVal());
+					propertyTmp.setIsRequire(propertyIsRequiredEnum.getVal());
+					propertyTmp.setPropertyType(propertyTypeEnum.getVal());
+
+					//校验销售属性必填
+					if(Objects.equals(PropertyTypeEnum.SELL_PROPERTY.getVal(),propertyTmp.getPropertyType())){
+						if(Objects.equals(PropertyIsRequiredEnum.REQUIRED_NO.getVal(),propertyTmp.getIsRequire())){
+							log.error("第{}行销售属性非必填！！！",i);
+							return null;
+						}
+						//输入类型控制
+						if(!Objects.equals(propertyTmp.getInputType(),PropertyInputTypeEnum.MUTIL_SELECT_ALLOW_DEFINE.getVal())){
+							log.error("第{}行销售属性输入方式必须为多选允许自定义！！！",i);
+							return null;
+						}
 					}
-					//输入类型控制
-					if(!Objects.equals(propertyTmp.getInputType(),PropertyInputTypeEnum.MUTIL_SELECT_ALLOW_DEFINE.getVal())){
-						log.error("第{}行销售属性输入方式必须为多选允许自定义！！！",i);
-						return null;
-					}
+					propertyList.add(propertyTmp);
 				}
-				propertyList.add(propertyTmp);
 			}
 
 			//叶子类目关联同一属性项控制
@@ -226,7 +246,7 @@ public class ExcelUtil {
 			}
 
 			//校验销售属性
-			Map<String,Long> groupResult = categoryList.stream().filter(s -> 2==s.getPropertyType()).collect(Collectors.groupingBy(CategoryTmp::getKeyId,Collectors.counting()));
+			Map<String,Long> groupResult = categoryList.stream().filter(s -> Objects.equals(2,s.getPropertyType())).collect(Collectors.groupingBy(CategoryTmp::getKeyId,Collectors.counting()));
 			Map<String,Long> propertyProblemMap = Maps.filterValues(groupResult, r->r>2);
 			if(null!=propertyProblemMap && !propertyProblemMap.isEmpty()){
 				propertyProblemMap.forEach((k,v)->{

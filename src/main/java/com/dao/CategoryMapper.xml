@@ -24,9 +24,14 @@
     from category
     where id = #{id,jdbcType=INTEGER}
   </select>
+
+  <select id="selectMaxOrderByLevel" resultType="java.lang.Integer" parameterType="java.lang.Integer" >
+    SELECT IFNULL(max(`sort_order`),0) AS max_order from category
+    where level = #{level,jdbcType=INTEGER}
+  </select>
   
    <update id="updateCategoryRemoveOne" >
-    update category set path = concat(path, id, '/')  where level in (2,3,4)
+    update category set path = concat(path, id, '/')  where level in (2,3,4) and path like CONCAT('%/',parent_id,'/')
   </update>
   
   
